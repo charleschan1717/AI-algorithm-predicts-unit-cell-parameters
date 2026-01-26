@@ -17,7 +17,7 @@ CrystalNeXtT-Solution：
 
 数据集下载
 
-本比赛使用的数据集包含 7000 条模拟 Cu 靶 XRD 图谱（.xy 格式）及对应的标注信息（.json 格式），源自 Crystallography Open Database (COD)。（https://www.crystallography.net/cod/）可以自己爬取下载数据集。
+本比赛使用的数据集包含 7000 条模拟 Cu 靶 XRD 图谱（.xy 格式）及对应的标注信息（.json 格式），源自 Crystallography Open Database (COD)。https://www.crystallography.net/cod/
 
 下载链接: https://drive.google.com/file/d/1OqjqJCdUYJEuhitbAl7pUDtIDnGLZg7H/view?usp=drive_link
 下载后请解压至 data/ 目录，结构如下(仅给出1000+数据集，可在COD官网自行爬取数据集，可自定义，可自行分配数据集)：
