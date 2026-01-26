@@ -1,4 +1,6 @@
-<img width="1036" height="358" alt="image" src="https://github.com/user-attachments/assets/4942fb82-f4fd-4ee4-814b-e60d8b9625e4" />Introduction
+<img width="1036" height="358" alt="image" src="https://github.com/user-attachments/assets/4942fb82-f4fd-4ee4-814b-e60d8b9625e4" />
+<img width="241" height="110" alt="image" src="https://github.com/user-attachments/assets/7e7fdc91-244b-4e52-aeb2-ad296d9af2b0" />
+Introduction
 本项目开源了 CrystalNeXtT 算法源码，这是 2025 AICOMP 挑战赛的全国第二名的解决方案。
 
 赛题旨在解决粉末 X 射线衍射（XRD）图谱分析中的“指标化”难题。算法需要从含有噪声、杂峰及仪器误差的原始图谱中，直接预测晶胞参数并标定晶面指数，以辅助新材料的结构解析。
