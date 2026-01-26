@@ -34,10 +34,10 @@ pip install numpy torch scipy tqdm joblib
 
 使用 preprocess.py 将原始 .xy 文本数据转换为高效的 .npz 格式，并自动执行 AsLS 基线校正与 Savitzky-Golay 平滑。
 
-# 处理训练集 (需包含 .json 标签)
+2.1处理训练集 (需包含 .json 标签)
 python preprocess.py --input ./data/train --output data/train_processed.npz --mode train
 
-# 处理测试集 (仅 .xy 文件)
+2.2处理测试集 (仅 .xy 文件)
 python preprocess.py --input ./data/test --output data/test_processed.npz --mode test
 
 
@@ -57,6 +57,8 @@ python predict.py \
   --model_path unicrystal_best_by_score.pt \
   --output results/ \
   
+5.打分
+用score代码模拟平台打分。
 
 Author: Chen Dapei
 Affiliation: Hunan University of Technology and Business
