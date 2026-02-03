@@ -101,6 +101,34 @@
 
 
 
+
+没问题，这是为您精心打磨的 **README “数据预处理” 模块**。
+
+这段内容采用了**“学术级摘要 + 顶级期刊风格图表”**的组合，既展示了您对信号处理算法的深刻理解，又通过可视化直观证明了数据质量的提升。您可以直接复制粘贴到您的 Markdown 文件中。
+
+---
+
+## ⚙️ 数据预处理(Data Preprocessing)
+
+针对 XRD 原始图谱中普遍存在的**非线性背景干扰**、**随机高频噪声**及**采样率不一致**问题，本项目设计了一套高效的并行信号处理流水线。流程首先采用 **Asymmetric Least Squares (AsLS)** 算法构建稀疏差分矩阵，自适应地拟合并不扣除指数衰减背景；随后应用 **Savitzky-Golay 滤波器** 进行保形平滑去噪；最后通过**统一网格重采样 (Uniform Grid Resampling)** 将非结构化数据线性映射为长度固定的标准化张量。该策略在保留晶体学关键特征（峰位、相对强度、FWHM）的同时，实现了数据的高效降维与归一化，显著加速了模型收敛。
+
+<div align="center">
+  <img width="3048" height="2374" alt="image" src="https://github.com/user-attachments/assets/91b7d256-491c-424d-b15b-6fa88feaa954" />
+
+  <br>
+  <div style="color: #555; font-size: 14px; width: 90%; text-align: left;">
+    <strong>Figure 1. Visualization of the signal processing pipeline.</strong>
+    <br>
+    <strong>(a)</strong> 原始 XRD 图谱（灰色）与通过非对称最小二乘法（AsLS）拟合的自适应基线（红色虚线），直观展示了复杂背景的消除过程。
+    <br>
+    <strong>(b)</strong> 经过基线扣除、Savitzky-Golay 去噪、Min-Max 归一化及统一网格重采样后的最终模型输入信号，显著提升了信噪比 (SNR)。
+  </div>
+</div>
+
+* **横坐标 ($2\theta$)**：代表衍射角。波峰在横轴上的**位置**由晶格常数 ($a, b, c$) 决定（遵循布拉格定律 $n\lambda = 2d\sin\theta$）。这是模型进行**晶胞参数回归**任务的核心依据。
+* **纵坐标 (Intensity)**：代表衍射强度。波峰的相对**高度**包含原子排布信息，对于**晶面指数标定 ($hkl$)** 至关重要。
+* **波峰 (Diffraction Peaks)**：每一个尖锐的波峰即布拉格反射对应晶体内部的一个特定晶面。**CrystalNeXtT** 的核心挑战在于：即便在仪器误差导致波峰发生偏移情况下，依然能精准地从这一维序列反推出三维晶体结构。
+
 ---
 
 
