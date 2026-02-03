@@ -136,7 +136,7 @@
 
   <br>
   <div style="color: #555; font-size: 14px; width: 90%; text-align: center;">
-    <strong>Figure 2. The CrystalNeXtT Architecture.</strong> The pipeline consists of (1) a Multi-Scale CNN Encoder for local feature extraction, (2) a Transformer Encoder for global context modeling via the [CLS] token, and (3) Physics-Constrained Prediction Heads for decoupling crystal parameters from systematic errors.
+    <strong>Figure 2. The CrystalNeXtT Architecture.</strong> 
   </div>
 </div>
 
