@@ -10,7 +10,7 @@
 [![Award](https://img.shields.io/badge/AICOMP_2025-National_2nd_Place-gold)](https://github.com/)
 
 
-**2025 AICOMP 挑战赛全国第二名解决方案**
+**2025 AICOMP 挑战赛"新材料赛道"全国第二名解决方案**
  
 
 </div>
@@ -123,35 +123,71 @@
 * **波峰 (Diffraction Peaks)**：每一个尖锐的波峰即布拉格反射对应晶体内部的一个特定晶面。**CrystalNeXtT** 的核心挑战在于：即便在仪器误差导致波峰发生偏移情况下，依然能精准地从这一维序列反推出三维晶体结构。
 
 ---
-## 🧠 模型框架Framework: The CrystalNeXtT Framework
+## 🧠 模型框架：The CrystalNeXtT Framework
 
-本项目提出了 **CrystalNeXtT**，一种**物理感知的混合深度学习架构 (Physics-Aware Hybrid Architecture)**。针对 XRD 图谱数据的序列特性与晶体学约束，模型采用了 **"Local-to-Global"** 的设计范式，结合了ConvNeXt的局部特征提取能力与Transformer的长程全局关联能力。
+本项目提出了 **CrystalNeXtT**，一种**物理感知的混合深度学习架构 (Physics-Aware Hybrid Architecture)**。针对 XRD 图谱数据的序列特性与晶体学约束，模型采用了 **"Local-to-Global"** 的设计范式，结合了ConvNeXT的局部特征提取能力与 Transformer 的全局上下文关联能力。
 
-### 1 Overview
+### Architecture Overview (架构总览)
 
-模型处理流程包含三个核心阶段：**多尺度特征编码 (Multi-Scale Encoding)**、**全局上下文建模 (Global Context Modeling)** 以及 **物理约束解码 (Physics-Constrained Decoding)**。
-<img width="1024" height="572" alt="image" src="https://github.com/user-attachments/assets/24c04b95-f7d2-4ffd-a00d-680116c8bf3e" />
+模型处理流程分为三个核心阶段：**多尺度特征编码 (Multi-Scale Encoding)**、**全局上下文建模 (Global Context Modeling)** 以及 **物理约束解码 (Physics-Constrained Decoding)**。
 
-### 2 核心技术创新
+<div align="center">
+  <img width="1024" height="572" alt="image" src="https://github.com/user-attachments/assets/8b210973-89a3-4eef-b83f-f9513bda1b32" />
 
-#### 🔹 1. Multi-Dilated ConvNeXt Encoder (多空洞卷积编码器)
-针对 XRD 衍射峰**半峰宽 (FWHM)** 变化剧烈（受晶粒尺寸和结晶度影响）的特点，我们在 ConvNeXt 模块中引入了 **Multi-Dilated Depth-wise Convolution**。
-* **Implementation**: 每一个卷积块并行包含膨胀率为 $d=[1, 3, 5]$ 的三个分支。
-* **Significance**: 这使得单个神经元具备了**自适应感受野**，既能捕捉尖锐的结晶峰，也能有效提取宽化的漫散射信号。此外，引入 **ECA (Efficient Channel Attention)** 模块进一步增强了对特征指纹通道的敏感度，通过对不同位置来加入注意力模块来进行调优。
+  <br>
+  <div style="color: #555; font-size: 14px; width: 90%; text-align: center;">
+    <strong>Figure 2. The CrystalNeXtT Architecture.</strong> The pipeline consists of (1) a Multi-Scale CNN Encoder for local feature extraction, (2) a Transformer Encoder for global context modeling via the [CLS] token, and (3) Physics-Constrained Prediction Heads for decoupling crystal parameters from systematic errors.
+  </div>
+</div>
 
-#### 🔹 2. Geometric Angle Gating (晶体几何门控机制)
-这是本模型的**核心创新点**。在晶体学中，正交晶系 ($90^\circ$) 和六方晶系 ($120^\circ$) 具有严格的几何约束。普通的回归模型极易预测出 $89.9^\circ$ 或 $90.1^\circ$ 的数值误差，导致晶系判定错误。
-* **Mechanism**: 我们设计了一个并行分支，同时进行**角度值回归 (Regression)** 和 **角度类别分类 (Classification)**。
-* **Formulation**: 最终输出由门控概率加权决定：<img width="286" height="25" alt="image" src="https://github.com/user-attachments/assets/18c3ae88-51b5-43ce-9acf-9c50e5644f4c" />
-* **Effect**: 这种设计作为一种**归纳偏置**，强制模型在面对高对称性晶体时精确收敛至理论值。
+<br>
 
-#### 🔹 3. Systematic Error Decoupling (系统误差显式解耦)
-为了应对真实实验中的仪器误差，模型不仅仅预测晶胞参数，还设有独立的 **Error Estimator Head**。
-* **Zero Shift ($\Delta 2\theta_0$)**: 预测由于检测器校准不准导致的整体偏移。
-* **Sample Displacement ($s$)**: 基于物理公式预测样品高度误差：<img width="119" height="38" alt="image" src="https://github.com/user-attachments/assets/205e6478-31d8-4c45-87f7-741f76b74d41" />
-* **Calibration**: 这使得模型具备了“自动校准”能力，将环境干扰从晶体结构特征中剥离出来。
+### Detailed Workflow (详细流程)
 
-### 3 以物理为导向的训练方法
+#### 🔹 Stage 1: Multi-Scale CNN Encoder (ConvNeXt-1D)
+**目标：提取局部波形特征**
+输入为经过预处理的 1D 张量 $(B, 1, 10000)$。由于 XRD 衍射峰的**半峰宽** 受晶粒尺寸和结晶度影响变化剧烈，单一尺度的卷积核难以同时捕捉尖锐的结晶峰和宽化的漫散射信号。
+* **Stem Downsampling**: 通过 3 层大步长卷积 (Stride=2,2,4) 将高维输入快速映射至潜在特征空间。
+* **Multi-Dilated ConvNeXt Block**: 每一个卷积块内部并行包含三个分支，膨胀率分别为 $d=[1, 3, 5]$。
+    * *自适应感受野*：小膨胀率捕捉尖锐峰，大膨胀率提取背景与宽化峰。
+    * *ECA Attention*：引入高效通道注意力(Efficient Channel Attention)，增强模型对特定衍射指纹通道的敏感度。
+
+#### 🔹 Stage 2: Global Context Modeling (Transformer Encoder)
+**目标：建立长距离依赖并且信息聚合**
+XRD 图谱中低角度峰与高角度峰存在严格的几何拓扑关系（由同一套晶胞参数决定）。CNN 擅长局部特征，而 Transformer 擅长全局交互。
+* **[CLS] Token 机制**: 我们在 CNN 输出的特征序列前拼接了一个可学习的 **[CLS] Token**。
+* **Self-Attention**: 经过 4 层 Transformer Encoder 的自注意力机制交互，全图的晶体学信息最终被“压缩”并汇聚到这个 **[CLS] Token** 中。
+* **Output**: 最终仅截取 [CLS] Token 的特征向量 $(B, C)$ 作为后续所有预测任务的输入，实现了高效的信息解耦。
+
+#### 🔹 Stage 3: Multi-Task Prediction Heads (Physics-Constrained Decoding)
+**目标：物理参数解耦与预测**
+基于聚合了全局信息的 [CLS] Token，模型通过多个并行的 MLP 头输出物理参数，并引入几何门控机制。
+
+**1. Lattice & Angle Gating (晶胞参数与角度门控)**
+针对高对称性晶系（如立方、六方）的“伪对称”难题，我们设计了 **Geometric Angle Gating** 机制：
+* **Angle Gate Head**: 将角度分类为 $\{90^\circ, 120^\circ, \text{Free}\}$ 三种概率 $P$。
+* **Lattice Head**: 回归原始的角度数值 $\alpha_{raw}$。
+* **物理约束公式**:
+
+$$
+\hat{\theta}_{final} = P_{90} \cdot 90^\circ + P_{120} \cdot 120^\circ + P_{free} \cdot \alpha_{raw}
+$$
+  
+  该机制强制模型在面对正交或六方晶系时，精确收敛至理论值 ($90^\circ/120^\circ$)。
+
+**2. Systematic Error Decoupling (系统误差显式解耦)**
+为了应对真实实验中的干扰，**Error Head** 独立预测两项关键仪器误差，赋予模型“自动校准”能力：
+* **Zero Shift ($\Delta 2\theta_0$)**: 预测检测器零点漂移。
+* **Sample Displacement ($s$)**: 基于物理公式预测样品高度误差：
+  
+$$
+\Delta 2\theta \approx -\frac{2s}{R}\cos\theta
+$$
+
+**3. HKL Prediction (晶面指数预测)**
+**HKL Head** 输出多热编码 (Multi-hot) 向量，辅助模型理解衍射峰对应的晶面指数，进一步辅助晶胞参数的收敛。
+
+### 以物理为导向的训练方法
 
 #### 📉 Hybrid Loss Function (复合损失函数)
 模型通过多任务学习(Multi-Task Learning)进行联合优化：
