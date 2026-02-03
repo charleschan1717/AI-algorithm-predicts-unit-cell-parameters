@@ -112,9 +112,9 @@
   <div style="color: #555; font-size: 14px; width: 90%; text-align: left;">
     <strong>Figure 1. Visualization of the signal processing pipeline.</strong>
     <br>
-    <strong>(a)</strong> 原始 XRD 图谱（灰色）与通过非对称最小二乘法（AsLS）拟合的自适应基线（红色虚线），直观展示了复杂背景的消除过程。
+    <strong>(a)</strong> 原始 XRD 图谱与通过非对称最小二乘法AsLS拟合的自适应的基线，直观展示了复杂背景的消除过程。
     <br>
-    <strong>(b)</strong> 经过基线扣除、Savitzky-Golay 去噪、Min-Max 归一化及统一网格重采样后的最终模型输入信号，显著提升了信噪比 (SNR)。
+    <strong>(b)</strong> 经过基线扣除、Savitzky-Golay去噪、归一化及统一网格重采样后的最终模型输入信号，提升了信噪比。
   </div>
 </div>
 
