@@ -130,16 +130,9 @@
 * **波峰 (Diffraction Peaks)**：每一个尖锐的波峰即布拉格反射对应晶体内部的一个特定晶面。**CrystalNeXtT** 的核心挑战在于：即便在仪器误差导致波峰发生偏移情况下，依然能精准地从这一维序列反推出三维晶体结构。
 
 ---
-
-这是为你撰写的完整 **Methodology (模型框架)** 部分，可以直接复制到你的 `README.md` 中。
-
-这段内容深度结合了你 `train.py` 中的代码细节（如 **Multi-Dilated Conv**、**Angle Gating**、**Physics Augmentation**），用词学术且专业，非常适合展示给导师看。
-
----
-
 ## 🧠 模型框架Framework: The CrystalNeXtT Framework
 
-本项目提出了 **CrystalNeXtT**，一种**物理感知的混合深度学习架构 (Physics-Aware Hybrid Architecture)**。针对 XRD 图谱数据的序列特性与晶体学约束，模型采用了 **"Local-to-Global"** 的设计范式，结合了现代化 CNN (ConvNeXt) 的局部特征提取能力与 Transformer 的长程全局关联能力。
+本项目提出了 **CrystalNeXtT**，一种**物理感知的混合深度学习架构 (Physics-Aware Hybrid Architecture)**。针对 XRD 图谱数据的序列特性与晶体学约束，模型采用了 **"Local-to-Global"** 的设计范式，结合了ConvNeXt的局部特征提取能力与Transformer的长程全局关联能力。
 
 ### 1 Overview
 
@@ -149,26 +142,26 @@
 ### 2 核心技术创新
 
 #### 🔹 1. Multi-Dilated ConvNeXt Encoder (多空洞卷积编码器)
-针对 XRD 衍射峰**半峰宽 (FWHM)** 变化剧烈（受晶粒尺寸和结晶度影响）的特点，我们在 ConvNeXt 模块中创新性地引入了 **Multi-Dilated Depth-wise Convolution**。
+针对 XRD 衍射峰**半峰宽 (FWHM)** 变化剧烈（受晶粒尺寸和结晶度影响）的特点，我们在 ConvNeXt 模块中引入了 **Multi-Dilated Depth-wise Convolution**。
 * **Implementation**: 每一个卷积块并行包含膨胀率为 $d=[1, 3, 5]$ 的三个分支。
-* **Significance**: 这使得单个神经元具备了**自适应感受野 (Adaptive Receptive Field)**，既能捕捉尖锐的结晶峰，也能有效提取宽化的漫散射信号。此外，引入 **ECA (Efficient Channel Attention)** 模块进一步增强了对特征指纹通道的敏感度。
+* **Significance**: 这使得单个神经元具备了**自适应感受野**，既能捕捉尖锐的结晶峰，也能有效提取宽化的漫散射信号。此外，引入 **ECA (Efficient Channel Attention)** 模块进一步增强了对特征指纹通道的敏感度，通过对不同位置来加入注意力模块来进行调优。
 
 #### 🔹 2. Geometric Angle Gating (晶体几何门控机制)
 这是本模型的**核心创新点**。在晶体学中，正交晶系 ($90^\circ$) 和六方晶系 ($120^\circ$) 具有严格的几何约束。普通的回归模型极易预测出 $89.9^\circ$ 或 $90.1^\circ$ 的数值误差，导致晶系判定错误。
 * **Mechanism**: 我们设计了一个并行分支，同时进行**角度值回归 (Regression)** 和 **角度类别分类 (Classification)**。
 * **Formulation**: 最终输出由门控概率加权决定：<img width="286" height="25" alt="image" src="https://github.com/user-attachments/assets/18c3ae88-51b5-43ce-9acf-9c50e5644f4c" />
-* **Effect**: 这种设计作为一种**归纳偏置 (Inductive Bias)**，强制模型在面对高对称性晶体时精确收敛至理论值。
+* **Effect**: 这种设计作为一种**归纳偏置**，强制模型在面对高对称性晶体时精确收敛至理论值。
 
 #### 🔹 3. Systematic Error Decoupling (系统误差显式解耦)
 为了应对真实实验中的仪器误差，模型不仅仅预测晶胞参数，还设有独立的 **Error Estimator Head**。
 * **Zero Shift ($\Delta 2\theta_0$)**: 预测由于检测器校准不准导致的整体偏移。
 * **Sample Displacement ($s$)**: 基于物理公式预测样品高度误差：<img width="119" height="38" alt="image" src="https://github.com/user-attachments/assets/205e6478-31d8-4c45-87f7-741f76b74d41" />
-* **Calibration**: 这使得模型具备了“自动校准 (Auto-Calibration)”能力，将环境干扰从晶体结构特征中剥离出来。
+* **Calibration**: 这使得模型具备了“自动校准”能力，将环境干扰从晶体结构特征中剥离出来。
 
 ### 3 以物理为导向的训练方法
 
 #### 📉 Hybrid Loss Function (复合损失函数)
-模型通过多任务学习 (Multi-Task Learning) 进行联合优化：
+模型通过多任务学习(Multi-Task Learning)进行联合优化：
 
 $$
 \mathcal{L}_{total} = \lambda_{cell}\mathcal{L}_{MSE} + \lambda_{tth}\mathcal{L}_{Chamfer} + \lambda_{gate}\mathcal{L}_{CE} + \lambda_{error}\mathcal{L}_{L1}
@@ -178,7 +171,7 @@ $$
 * **$\mathcal{L}_{gate}$**: 监督角度门控分类器，确保晶系对称性的正确识别。
 
 #### 🎲 Domain Randomization (域随机化)
-为了弥补模拟数据与真实数据的分布差异 (Sim-to-Real Gap)，我们在训练循环中在线应用基于物理原理的数据增强：
+为了弥补模拟数据与真实数据的分布差异，我们在训练循环中在线应用基于物理原理的数据增强：
 * **Impurity Injection**: 随机生成高斯杂质峰，迫使模型学习区分“结构信号”与“杂质噪声”。
 * **Peak Broadening**: 随机卷积模拟晶粒尺寸细化效应。
 * **Elastic Displacement**: 动态注入随机的零点漂移 ($\pm 0.5^\circ$) 和样品偏移 ($\pm 0.2mm$)。
